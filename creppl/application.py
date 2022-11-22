@@ -180,6 +180,7 @@ class Application:
                     statement = None
                 else:
                     on_command_quit(self.fileio)
+                    self.req_quit()
 
         return statement, error
 
