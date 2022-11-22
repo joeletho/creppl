@@ -7,6 +7,7 @@ Are you sick of the hassle of creating your C++ projects, when you just get goin
 
 Creppl is a REPL for C++ that works in a terminal! Coupled with additional commands, Creppl can also be a light-weight text editor to quickly add, modify, or remove existing code. Enter any valid C++ code and view the results instantly, in true REPL fashion.
 
+<img src="https://github.com/joeletho/creppl/blob/main/images/creppl_examples.gif"  width = "450">
 
 ### Instructions
 To install, enter ```pip install creppl``` in a command line. Then just run ```creppl``` and get coding; Creppl will take care of the rest.
