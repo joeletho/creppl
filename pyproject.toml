@@ -2,7 +2,7 @@
 
 [project]
 name = "Creppl"
-version = "1.0.0"
+version = "1.0.1"
 description = "C++ REPL"
 readme = "README.md"
 authors = [{ name = "Joel Thomas", email = "joelthomas.e@gmail.com" }]
@@ -28,7 +28,7 @@ Homepage = "https://github.com/joeletho/creppl"
 creppl = "creppl.__main__:main"
 
 [tool.bumpver]
-current_version = "1.0.0"
+current_version = "1.0.1"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message  = "Bump version {old_version} -> {new_version}"
 commit          = true
