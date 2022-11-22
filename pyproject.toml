@@ -1,0 +1,40 @@
+# pyproject.toml
+
+[project]
+name = "Creppl"
+version = "1.0.0"
+description = "C++ REPL"
+readme = "README.md"
+authors = [{ name = "Joel Thomas", email = "joelthomas.e@gmail.com" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "Topic :: Text Editors",
+    "Environment :: Console",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.8",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+]
+keywords = ["c++", "repl", "python", "cpp", "cli", "terminal"]
+
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+dev = ["bumpver", "pip-tools"]
+
+[project.urls]
+Homepage = "https://github.com/joeletho/creppl"
+
+[project.scripts]
+creppl = "creppl.__main__:main"
+
+[tool.bumpver]
+current_version = "1.0.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message  = "Bump version {old_version} -> {new_version}"
+commit          = true
+tag             = true
+push            = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']
+"creppl/__init__.py" = ["{version}"]
