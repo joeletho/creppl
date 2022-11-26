@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name="creppl",
-      version="1.0.0",
+      version="1.0.1",
       description="C++ REPL",
       long_description="C++ REPL (Read, Evaluate, Print, Loop) written in Python",
       readme="README.md",
