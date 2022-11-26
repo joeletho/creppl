@@ -2,14 +2,31 @@
 
 import sys
 
+from creppl.cmd import Command
 from creppl.io.fileio import FileIO
 from creppl.ui.prompts import show_header
 from creppl.utils.helpers import file_reset
 
+"""Minimum number of arguments required for commands"""
 MIN_KWARGS = 2
 
 
 def on_command_del(fileio: FileIO, statement, kwargs):
+    """
+    Deletes the lines from the file indicated by the kwargs.
+
+    It is assumed the command and command argument has been extracted from the statement.
+
+    Parameters
+    ----------
+    fileio: FileIo
+        The FileIO object to reference
+    statement: str
+        The user input statement
+    kwargs: Tuple[str, str]
+        The command and command arguments: ({command}, {args})
+    """
+
     line_num = fileio.get_cursor()
     n_lines = 1
     if kwargs[1] is None or len(kwargs) < MIN_KWARGS or len(kwargs[1]) == 0:
@@ -46,11 +63,28 @@ def on_command_del(fileio: FileIO, statement, kwargs):
 
 
 def on_command_cls():
+    """
+    Clears the screen of the terminal
+    """
+
     sys.stdout.write("\033[2J\033[1;1H")
     show_header()
 
 
 def on_command_goto(fileio: FileIO, statement, kwargs):
+    """
+    Moves the FileIO cursor to the line indicated in kwargs[1]
+
+    Parameters
+    ----------
+    fileio: FileIO
+        The FileIO object to reference
+    statement: str
+        The user input statement
+    kwargs: Tuple[str, str]
+        The command and command arguments: ({command}, {args})
+    """
+
     if len(kwargs) < MIN_KWARGS or kwargs[1] is None:
         print(f'ValueError: Missing arguments for command \"${kwargs[0]}\".')
         return
@@ -69,6 +103,15 @@ def on_command_goto(fileio: FileIO, statement, kwargs):
 
 
 def on_command_print(fileio: FileIO):
+    """
+    Prints the contents of the file prepended by a line number.
+
+    Parameter
+    ---------
+    fileio: FileIO
+        The FileIO object reference
+    """
+
     with open(fileio.filepath, 'r') as file:
         for count, line in enumerate(file):
             print(f"{count + 1}".center(4) + f"| {line}", end="")
@@ -76,6 +119,15 @@ def on_command_print(fileio: FileIO):
 
 
 def on_command_help():
+    """
+    Prints the help menu for Creppl
+
+    Returns
+    -------
+    Optional[None]
+        None if a KeyboardInterrupt was detected. Otherwise, not None
+    """
+
     from creppl.io.terminal import KeyCode
 
     __MAX_LINE_LENGTH__ = 80
@@ -189,6 +241,15 @@ def on_command_help():
 
 
 def on_command_quit(fileio: FileIO):
+    """
+    Appends a '\n' to the file
+
+    Parameter
+    ---------
+    fileio: FileIO
+        The FileIO object reference
+    """
+
     with open(fileio.filepath, "a+") as file:
         try:
             file.write("\n}")
@@ -196,7 +257,24 @@ def on_command_quit(fileio: FileIO):
             print(f'Exception: {_ex}.')
 
 
-def on_command_set_write_mode(fileio: FileIO, mode, statement, kwargs):
+def on_command_set_write_mode(fileio: FileIO, mode: Command, statement, kwargs):
+    """
+    Sets the write mode for the file.
+
+    Write modes include: Insert | Replace
+
+    Parameters
+    ----------
+    fileio: FileIO
+        The FileIO object reference
+    mode: Command
+        The write mode of the file
+    statement: str
+        The user input statement
+    kwargs: Tuple[str, str]
+        The command and command arguments: ({command}, {args})
+    """
+
     if kwargs[1] is None or len(kwargs) < MIN_KWARGS or len(kwargs[1]) == 0:
         line_num = fileio.get_cursor()
     elif kwargs[1].isnumeric():
@@ -211,5 +289,16 @@ def on_command_set_write_mode(fileio: FileIO, mode, statement, kwargs):
 
 
 def on_command_reset(fileio: FileIO, __s=""):
+    """
+    Clears and writes __s to the file and resets the fileio to its original settings.
+
+    Parameters
+    ----------
+    fileio: FileIO
+        The FileIO object reference
+    __s: str
+        The string to write to the file
+    """
+
     file_reset(fileio.filepath, __s)
     fileio.update()

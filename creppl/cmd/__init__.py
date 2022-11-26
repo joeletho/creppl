@@ -4,7 +4,9 @@ import enum
 
 
 class Command(enum.auto):
-    """CREPPL Terminal Commands"""
+    """
+    Global Terminal commands accessed by the program
+    """
     DEL = "del"
     GOTO = "goto"
     HELP = "help"

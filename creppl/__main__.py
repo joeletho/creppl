@@ -12,8 +12,6 @@ def main():
 
     if len(sys.argv) > 1:
         filename = sys.argv[1]
-        if not filename.endswith(".cpp"):
-            filename += ".cpp"
     else:
         filename = "main.cpp"
 

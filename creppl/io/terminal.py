@@ -8,6 +8,9 @@ from typing import TextIO
 
 
 class KeyCode:
+    """
+    Keycodes used by Terminal
+    """
     BKSP = 127
     SIGINT = 3
     ENTER = (10, 13)
@@ -26,19 +29,53 @@ class KeyCode:
 
 
 class Terminal:
-    """This class emulates a UNIX terminal which captures user input,
-    maintains an input history, and writes output to display.
-
-        Attributes:
-            __MAX_HIST_LEN__: int
-                The max length of the input history list.
-            __stdin: TextIO
-                The input stream to acquire.
-            __stdout: TextIO
-                The output stream to direct output.
-            __old_in_fd: TextIO
-                The file descriptor of the original input stream.
     """
+    This class emulates a UNIX terminal which captures user input, maintains an input history, and writes output to
+    display.
+
+    Attributes
+    ----------
+    __MAX_HIST_LEN__: int
+        The max length of the input history list.
+    __stdin: TextIO
+        The input stream to acquire.
+    __stdout: TextIO
+        The output stream to direct output.
+    __old_in_fd: TextIO
+        The file descriptor of the original input stream.
+    __put_index: int
+        The index of the file where characters are inserted or added to the file.
+    __get_index: int
+        The index of the file where characters are retrieved.
+
+    Methods
+    -------
+    __acquire__(file_descr: str)
+        Takes control of the stdin buffer to route all input to this Terminal.
+    __print_except__()
+        Prints the exception traceback using the original stdin buffer
+    release()
+        Returns control of the stdin buffer to its original state.
+    set_stdin(stdin: TextIO)
+        Sets the stdin buffer to use for the current session.
+    set_stdout(stdout: TextIO)
+        Sets the stdout buffer to use for the current session.
+    stdin_read(n_char: int) -> Any
+        Returns n characters from the stdin buffer.
+    stdout_write(out_str: Any)
+        Writes to the stdout buffer.
+    stdout_flush()
+        Flushes the stdout buffer.
+    put(in_str)
+        Inserts the string into the history list for later retrieval.
+    prev_hist() -> str
+        Gets the previous entry in the history list (if available) and prints it to the Terminal.
+    next_hist() -> str
+        Gets the next entry in the history list (if available) and prints it to the Terminal.
+    input(prompt: str)
+        Handles capturing input from the Terminal with optional message prompt.
+    """
+
     __MAX_HIST_LEN__ = 100
     __old_in_fd = TextIO
     __stdin = TextIO
@@ -50,13 +87,25 @@ class Terminal:
         self.__get_index = -1
 
     def __acquire__(self, file_descr):
+        """
+        Takes control of the stdin buffer to route all input to this Terminal.
+
+        Parameter
+        ---------
+        file_descr: IO[str]
+            The file descriptor of the stdin buffer to control
+        """
+
         self.__old_in_fd = termios.tcgetattr(file_descr.fileno())
         tty.setraw(file_descr)
         tty.setcbreak(True)
         self.__stdin = file_descr
 
     def __print_except___(self):
-        # Release IO control and print the exception, then reacquire the IO
+        """
+        Prints the exception traceback using the original stdin buffer
+        """
+
         stdin_backup = self.__stdin
         stdout_backup = self.__stdout
         self.release()
@@ -65,27 +114,90 @@ class Terminal:
         self.set_stdout(stdout_backup)
 
     def release(self):
+        """
+        Returns control of the stdin buffer to its original state.
+        """
+
         self.__stdout.write(f"\033[1000D")
         self.__stdout = None
         tty.setcbreak(False)
         termios.tcsetattr(0, termios.TCSAFLUSH, self.__old_in_fd)
 
     def set_stdin(self, stdin: TextIO):
+        """
+        Sets the stdin buffer to use for the current session.
+
+        Parameter
+        ---------
+        stdin: TextIO
+            The stdin buffer to use for the Terminal
+        """
+
         self.__acquire__(stdin)
 
     def set_stdout(self, stdout: TextIO):
+        """
+        Sets the stdout buffer to use for the current session.
+
+        Parameter
+        ---------
+        stdout: TextIO
+            The stdout buffer to use for the Terminal
+        """
+
         self.__stdout = stdout
 
-    def stdin_read(self, n_char: int):
+    def stdin_read(self, n_char=0):
+        """
+        Returns n characters from the stdin buffer.
+
+        Parameter
+        ---------
+        n_char: int
+            The number of characters to read and returned from the buffer. If empty, the entire contents of the
+            buffer will be returned.
+
+        Returns
+        -------
+        str
+            A string of n_char characters, or len(stdin) characters
+
+        """
+
+        if n_char == 0:
+            return self.__stdin.read()
+
         return self.__stdin.read(n_char)
 
     def stdout_write(self, out_str):
+        """
+        Writes to the stdout buffer.
+
+        Parameter
+        ---------
+        out_str: Any
+            The content to be written to the buffer
+        """
+
         self.__stdout.write(out_str)
 
     def stdout_flush(self):
+        """
+        Flushes the stdout buffer
+        """
+
         self.__stdout.flush()
 
     def put(self, in_str):
+        """
+        Inserts the string into the history list for later retrieval
+
+        Parameter
+        ---------
+        in_str: Any
+            The string to be added to the history list
+        """
+
         try:
             # noinspection PyTypeChecker
             self.__hist_list[self.__put_index] = in_str
@@ -95,6 +207,15 @@ class Terminal:
             self.__print_except___()
 
     def prev_hist(self):
+        """
+        Gets the previous entry in the history list (if available) and prints it to the Terminal
+
+        Returns
+        -------
+        str
+            A string containing the previous history list entry, if found. Otherwise, an empty string
+        """
+
         entry = ""
         try:
             if len(self.__hist_list[self.__get_index]) != 0:
@@ -107,6 +228,15 @@ class Terminal:
         return entry
 
     def next_hist(self):
+        """
+        Gets the next entry in the history list (if available) and prints it to the Terminal
+
+        Returns
+        -------
+        str
+            A string containing the next history list entry, if found. Otherwise, an empty string
+        """
+
         entry = ""
         try:
             self.__get_index = ((self.__get_index + 1) % self.__MAX_HIST_LEN__)
@@ -120,10 +250,26 @@ class Terminal:
         return entry
 
     def input(self, prompt=""):
-        """This function borrows code from Hayoi's Programming Blog:
+        """
+        Handles capturing input from the Terminal with optional message prompt.
+
+        This function borrows code from Hayoi's Programming Blog:
         http://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
 
-        This function handles captured input from the Terminal
+        Parameter
+        ---------
+        prompt: str
+            An optional message prompt to provide the user with direction
+
+        Raises
+        ------
+        KeyboardInterrupt
+            If the user enters Ctrl+C
+
+        Returns
+        -------
+        Generator[str, Any, Any]
+            A Generator object containing the user input. (Retrieve by calling next(Generator))
         """
 
         # TODO: prompt + selected line
